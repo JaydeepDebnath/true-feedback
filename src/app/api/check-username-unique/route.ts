@@ -1,33 +1,31 @@
-'use client'
 import dbConnect from "@/lib/dbConnect"
 import UserModel from "@/model/user.model"
 import { z } from "zod"
 import { usernameValidation } from "@/schemas/signUpSchema"
-import mongoose from "mongoose"
 
 
 const UsernameQuerySchema = z.object({
-    username:usernameValidation
+    username:usernameValidation,
 })
 
 export async function GET (request:Request){
     
-    await dbConnect()
+    await dbConnect();
 
     try {
         const {searchParams} = new URL(request.url)
-        const queryParam = {
+        const queryParams = {
             username:searchParams.get('username')
         }
 
         // validate with zod
 
-        const result = UsernameQuerySchema.safeParse(queryParam)
+        const result = UsernameQuerySchema.safeParse(queryParams)
         console.log(result)
 
         if(!result.success){
             const userNameErrors = result.error.format()
-            .username?._errors || []
+            .username?._errors || [];
 
             return Response.json({
                 message:userNameErrors?.length > 0
@@ -39,7 +37,7 @@ export async function GET (request:Request){
 
         const {username} = result.data
 
-        const existingVerifiedUser = UserModel.findOne({
+        const existingVerifiedUser = await UserModel.findOne({
             username,
             isVerified:true,
         })
